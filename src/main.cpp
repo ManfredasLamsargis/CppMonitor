@@ -4,16 +4,19 @@
 #include "pch.hpp"
 
 int main() {
+  using lab1::monitor;
+  using lab1::example::task;
+
   utils::clog::set();
 
-  lab1::monitor<std::vector<std::string>> mon;
+  monitor<std::vector<std::string>> mon;
 
   constexpr size_t thd_cnt{3};
   constexpr size_t repeat_ntimes{5};
   std::array<std::thread, thd_cnt> thds;
   for (size_t i = 0; i < thds.size(); ++i) {
-    thds.at(i) = std::thread{lab1::example::task, std::ref(mon),
-                             std::format("thread_{}", i), repeat_ntimes};
+    thds.at(i) = std::thread{task, std::ref(mon), std::format("thread_{}", i),
+                             repeat_ntimes};
   }
   std::for_each(thds.begin(), thds.end(), [](std::thread &thd) { thd.join(); });
 
