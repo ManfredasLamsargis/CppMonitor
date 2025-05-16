@@ -19,7 +19,7 @@ public:
     std::unique_lock<std::mutex> m_lock;
 
   public:
-    window(monitor &mon) : m_mon{mon}, m_lock(mon.m_mtx) {}
+    window(monitor &mon) : m_mon{mon}, m_lock{mon.m_mtx} {}
     window(const window &) = delete;
     window &operator=(const window &) = delete;
     T *operator->() { return &m_mon.m_cl; }
