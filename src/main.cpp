@@ -9,6 +9,7 @@
 #include <thread>
 #include <vector>
 
+namespace lab1 {
 template <typename T> class monitor {
 private:
   /**
@@ -53,17 +54,20 @@ public:
     window(monitor &mon) : m_mon{mon}, m_lock(mon.m_mtx) {}
     window(const window &) = delete;
     window &operator=(const window &) = delete;
-    ~window() {}
-    T &operator*() { return m_mon.m_cl; }
     T *operator->() { return &m_mon.m_cl; }
   };
 
-  window operator->() { return window(*this); }
+  window operator->() {
+    utils::clog::flag(spdlog::level::debug);
+    return window(*this);
+  }
+
   window pause() { return window(*this); }
+
   T &get_thread_unsafe_access() { return m_cl; }
 };
-
-void rnd_sleep_ms(const std::chrono::microseconds max) {
+namespace example {
+void rnd_sleep_us(const std::chrono::microseconds max) {
   std::random_device rnd_dev;
   std::mt19937 gen{rnd_dev()};
   std::uniform_int_distribution<> dist{0, static_cast<int>(max.count())};
@@ -81,29 +85,32 @@ void task(monitor<std::vector<std::string>> &mon, const std::string &hash,
   std::stringstream ss{};
   repeat(ntimes, [&ss, &hash, &mon]() {
     ss << '{' << hash << '}';
-    rnd_sleep_ms(std::chrono::microseconds(10));
+    rnd_sleep_us(std::chrono::microseconds(100));
     mon->push_back(ss.str());
     ss.str(std::string{});
   });
 }
+} // namespace example
+} // namespace lab1
 
 int main() {
   utils::clog::set();
 
-  monitor<std::vector<std::string>> mon;
+  lab1::monitor<std::vector<std::string>> mon;
 
   constexpr size_t thd_cnt{3};
   constexpr size_t repeat_ntimes{5};
   std::array<std::thread, thd_cnt> thds;
   for (size_t i = 0; i < thds.size(); ++i) {
-    thds.at(i) = std::thread{task, std::ref(mon), std::format("thread_{}", i),
-                             repeat_ntimes};
+    thds.at(i) = std::thread{lab1::example::task, std::ref(mon),
+                             std::format("thread_{}", i), repeat_ntimes};
   }
   std::for_each(thds.begin(), thds.end(), [](std::thread &thd) { thd.join(); });
 
   const std::vector<std::string> &vec{mon.get_thread_unsafe_access()};
   std::for_each(vec.begin(), vec.end(),
                 [](const std::string_view sv) { spdlog::trace("{}", sv); });
-  spdlog::debug("Total count: {}", vec.size());
+  spdlog::debug("Expected total count: {}, actual: {}", thd_cnt * repeat_ntimes,
+                vec.size());
   return EXIT_SUCCESS;
 }
