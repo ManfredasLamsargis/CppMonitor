@@ -25,7 +25,7 @@ target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror)
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/inc)
 
-target_precompile_headers(${PROJECT_NAME} PRIVATE "<log.hpp>")
+target_precompile_headers(${PROJECT_NAME} PRIVATE "<log.hpp>" "<pch.hpp>")
 
 target_link_libraries(${PROJECT_NAME} PRIVATE spdlog::spdlog
                                               $<$<BOOL:${MINGW}>:ws2_32>)
