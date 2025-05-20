@@ -31,6 +31,8 @@ class Monitor {
     Window &operator=(const Window &) = delete;
 
     T *operator->() { return &m_mon.m_cl; }
+
+    ~Window() { m_mon.m_cv.notify_all(); }
   };
 
   Window operator->() { return Window{*this}; }
@@ -45,9 +47,6 @@ class Monitor {
     m_cv.wait(lock, [&pred, this] { return pred(m_cl); });
     return Window{*this, std::move(lock)};
   }
-
-  void inform_other() { m_cv.notify_one(); }
-  void inform_others() { m_cv.notify_all(); }
 };
 }  // namespace lab1
 
