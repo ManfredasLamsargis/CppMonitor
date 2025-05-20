@@ -17,8 +17,14 @@ inline void random_sleep(const std::chrono::microseconds max) {
   random_sleep({}, max);
 }
 
-template <typename functor>
-inline void repeat(const std::size_t n, functor f) {
+template <typename F>
+concept VoidFunction = requires(F f) {
+  { std::invoke(f) } -> std::same_as<void>;
+};
+
+template <typename F>
+  requires VoidFunction<F>
+inline void repeat(const std::size_t n, F f) {
   for (size_t i = 0; i < n; i++) {
     f();
   }
