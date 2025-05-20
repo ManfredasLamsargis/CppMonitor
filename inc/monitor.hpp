@@ -42,7 +42,7 @@ class Monitor {
   template <typename Predicate>
   Window wait_until(Predicate pred) {
     std::unique_lock<std::mutex> lock{m_mtx};
-    m_cv.wait(lock, [&] { return pred(m_cl); });
+    m_cv.wait(lock, [&pred, this] { return pred(m_cl); });
     return Window{*this, std::move(lock)};
   }
 
