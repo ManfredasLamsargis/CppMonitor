@@ -4,33 +4,51 @@
 #include "pch.hpp"
 
 namespace lab1 {
-template <typename T> class monitor {
-private:
+template <typename T>
+class Monitor {
+ private:
   T m_cl;
   std::mutex m_mtx;
+  std::condition_variable m_cv;
 
-public:
+ public:
   template <typename... Args>
-  monitor(Args &&...args) : m_cl{std::forward<Args>(args)...} {}
+  Monitor(Args &&...args) : m_cl{std::forward<Args>(args)...} {}
 
-  class window {
-  private:
-    monitor &m_mon;
+  class Window {
+   private:
+    Monitor &m_mon;
     std::unique_lock<std::mutex> m_lock;
 
-  public:
-    window(monitor &mon) : m_mon{mon}, m_lock{mon.m_mtx} {}
-    window(const window &) = delete;
-    window &operator=(const window &) = delete;
+   public:
+    Window(Monitor &mon) : m_mon{mon}, m_lock{mon.m_mtx} {}
+
+    Window(Monitor &mon, std::unique_lock<std::mutex> &&lock)
+        : m_mon{mon}, m_lock{lock} {}
+
+    Window(const Window &) = delete;
+
+    Window &operator=(const Window &) = delete;
+
     T *operator->() { return &m_mon.m_cl; }
   };
 
-  window operator->() { return window(*this); }
+  Window operator->() { return Window{*this}; }
 
-  window pause() { return window(*this); }
+  Window pause() { return Window{*this}; }
 
   T &get_thread_unsafe_access() { return m_cl; }
+
+  template <typename Predicate>
+  Window acquire_when(Predicate pred) {
+    std::unique_lock<std::mutex> lock{m_mtx};
+    m_cv.wait(lock, [&] { return pred(m_cl); });
+    return Window{*this, std::move(lock)};
+  }
+
+  void inform_other() { m_cv.notify_one(); }
+  void inform_others() { m_cv.notify_all(); }
 };
-} // namespace lab1
+}  // namespace lab1
 
 #endif

@@ -4,12 +4,12 @@
 #include "pch.hpp"
 
 int main() {
-  using lab1::monitor;
+  using lab1::Monitor;
   using lab1::example::task;
 
   utils::clog::set();
 
-  monitor<std::vector<std::string>> mon;
+  Monitor<std::vector<std::string>> mon;
 
   constexpr size_t thd_cnt{3};
   constexpr size_t repeat_ntimes{5};

@@ -3,7 +3,9 @@
 
 #include "log.hpp"
 #include <algorithm>
+#include <condition_variable>
 #include <mutex>
+#include <optional>
 #include <random>
 #include <source_location>
 #include <sstream>

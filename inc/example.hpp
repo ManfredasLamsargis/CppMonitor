@@ -8,7 +8,7 @@
 
 namespace lab1::example {
 
-inline void task(monitor<std::vector<std::string>> &mon,
+inline void task(Monitor<std::vector<std::string>> &mon,
                  const std::string &hash, const size_t ntimes) {
   std::stringstream ss{};
   utils::repeat(ntimes, [&ss, &hash, &mon]() {
@@ -18,6 +18,6 @@ inline void task(monitor<std::vector<std::string>> &mon,
     ss.str(std::string{});
   });
 }
-} // namespace lab1::example
+}  // namespace lab1::example
 
 #endif
