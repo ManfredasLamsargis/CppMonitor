@@ -4,9 +4,9 @@
 #include "pch.hpp"
 
 int main() {
-  using lab1::Monitor;
-  using lab1::example::read_task;
-  using lab1::example::write_task;
+  using mem::Monitor;
+  using mem::example::read_task;
+  using mem::example::write_task;
 
   utils::clog::set();
 

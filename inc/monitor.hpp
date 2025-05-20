@@ -1,9 +1,9 @@
-#ifndef LAB1_MONITOR_HPP
-#define LAB1_MONITOR_HPP
+#ifndef MONITOR_HPP
+#define MONITOR_HPP
 
 #include "pch.hpp"
 
-namespace lab1 {
+namespace mem {
 template <typename T>
 class Monitor {
  private:
@@ -48,6 +48,6 @@ class Monitor {
     return Window{*this, std::move(lock)};
   }
 };
-}  // namespace lab1
+}  // namespace mem
 
 #endif

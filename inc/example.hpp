@@ -6,7 +6,7 @@
 #include "pch.hpp"
 #include "utils.hpp"
 
-namespace lab1::example {
+namespace mem::example {
 
 inline void write_task(Monitor<std::vector<std::string>> &mon,
                        const std::string &hash, const size_t ntimes) {
@@ -33,6 +33,6 @@ inline void read_task(Monitor<std::vector<std::string>> &mon,
     vec->pop_back();
   });
 }
-}  // namespace lab1::example
+}  // namespace mem::example
 
 #endif
