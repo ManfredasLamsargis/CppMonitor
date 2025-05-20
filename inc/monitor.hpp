@@ -24,7 +24,7 @@ class Monitor {
     Window(Monitor &mon) : m_mon{mon}, m_lock{mon.m_mtx} {}
 
     Window(Monitor &mon, std::unique_lock<std::mutex> &&lock)
-        : m_mon{mon}, m_lock{lock} {}
+        : m_mon{mon}, m_lock{std::move(lock)} {}
 
     Window(const Window &) = delete;
 
@@ -40,7 +40,7 @@ class Monitor {
   T &get_thread_unsafe_access() { return m_cl; }
 
   template <typename Predicate>
-  Window acquire_when(Predicate pred) {
+  Window wait_until(Predicate pred) {
     std::unique_lock<std::mutex> lock{m_mtx};
     m_cv.wait(lock, [&] { return pred(m_cl); });
     return Window{*this, std::move(lock)};
