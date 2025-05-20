@@ -20,5 +20,6 @@ int main() {
   writer_1.join();
   writer_2.join();
   reader.join();
+  auto shared_ptr{std::make_shared<Monitor<std::vector<std::string>>>()};
   return EXIT_SUCCESS;
 }
