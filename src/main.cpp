@@ -10,7 +10,8 @@ int main() {
 
   utils::clog::set();
 
-  Monitor<std::vector<std::string>> mon;
+  std::vector<std::string> vec{};
+  Monitor<std::vector<std::string>> mon{vec};
   std::thread writer_0{write_task, std::ref(mon), "a", 5};
   std::thread writer_1{write_task, std::ref(mon), "b", 5};
   std::thread writer_2{write_task, std::ref(mon), "c", 2};

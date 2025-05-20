@@ -18,7 +18,12 @@ class Monitor {
 
  public:
   template <typename... Args>
-  Monitor(Args &&...args) : m_cl{std::forward<Args>(args)...} {}
+  explicit Monitor(Args &&...args) : m_cl{std::forward<Args>(args)...} {}
+
+  Monitor(const Monitor &) = delete;
+  Monitor &operator=(const Monitor &) = delete;
+  Monitor(Monitor &&) = delete;
+  Monitor &operator=(Monitor &&) = delete;
 
   class Window {
    private:
