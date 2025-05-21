@@ -8,8 +8,9 @@ inline void random_sleep(const std::chrono::microseconds min,
                          const std::chrono::microseconds max) {
   std::random_device rnd_dev;
   std::mt19937 gen{rnd_dev()};
-  std::uniform_int_distribution<> dist{static_cast<int>(min.count()),
-                                       static_cast<int>(max.count())};
+  std::uniform_int_distribution<std::size_t> dist{
+      static_cast<std::size_t>(min.count()),
+      static_cast<std::size_t>(max.count())};
   std::this_thread::sleep_for(std::chrono::microseconds(dist(gen)));
 }
 
