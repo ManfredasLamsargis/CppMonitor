@@ -9,7 +9,7 @@
 namespace mem::example {
 
 inline void write_task(Monitor<std::vector<std::string>> &mon,
-                       const std::string &hash, const size_t ntimes) {
+                       const std::string &hash, const std::size_t ntimes) {
   std::stringstream ss{};
   utils::repeat(ntimes, [&ss, &hash, &mon] {
     ss << '{' << hash << '}';
@@ -21,7 +21,7 @@ inline void write_task(Monitor<std::vector<std::string>> &mon,
 }
 
 inline void read_task(Monitor<std::vector<std::string>> &mon,
-                      const std::string &hash, const size_t ntimes) {
+                      const std::string &hash, const std::size_t ntimes) {
   auto vec_not_empty = [](const std::vector<std::string> &vec) -> bool {
     return !vec.empty();
   };
