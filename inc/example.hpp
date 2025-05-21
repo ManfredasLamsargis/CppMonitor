@@ -7,7 +7,6 @@
 #include "utils.hpp"
 
 namespace mem::example {
-
 inline void write_task(Monitor<std::vector<std::string>> &mon,
                        const std::string &hash, const std::size_t ntimes) {
   std::stringstream ss{};
