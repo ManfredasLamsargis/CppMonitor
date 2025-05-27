@@ -5,7 +5,7 @@ if [[ $BASH_SOURCE = */* ]]; then
   CDPATH= cd -- "${BASH_SOURCE%/*}/" || exit
 fi
 
-cd .. || exit
+cd ../.. || exit
 mkdir -p build
 cd build || exit
 
