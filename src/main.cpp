@@ -37,13 +37,13 @@ int main() {
   spdlog::info("example2 started");
   std::vector<std::thread> producers{};
   producers.reserve(producer_count);
-  utils::repeat(producer_count, [&producers] {
-    producers.emplace_back(example2::producer_task, "1", 2);
+  utils::repeat(producer_count, [&producers, i = std::size_t{0}] mutable {
+    producers.emplace_back(example2::producer_task, std::to_string(i++), 2);
   });
   std::vector<std::thread> consumers{};
   consumers.reserve(consumer_count);
-  utils::repeat(consumer_count, [&consumers] {
-    consumers.emplace_back(example2::consumer_task, "2");
+  utils::repeat(consumer_count, [&consumers, i = std::size_t{0}] mutable {
+    consumers.emplace_back(example2::consumer_task, std::to_string(i++));
   });
   std::for_each(producers.begin(), producers.end(),
                 [](std::thread &t) { t.join(); });
