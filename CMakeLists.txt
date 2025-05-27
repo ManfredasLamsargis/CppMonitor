@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 
 project(
-  monitor
+  Monitor
 )
 
 set(CMAKE_CXX_STANDARD 23)
