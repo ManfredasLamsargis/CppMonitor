@@ -1,13 +1,25 @@
+# Linux
 To build a project run build script (requires CMake).
-For linux:
 ```bash
-./scripts/build.sh
+./scripts/linux/build.sh
 ```
+
 Binaries are in the build directory:
 ```bash
 ./build/Monitor
 ```
-Expected console output:
+# Windows
+Go to script directory:
+```cmd
+cd scripts\win
+```
+Run the script:
+```cmd
+build.cmd
+```
+Open `Monitor.sln` file and build Monitor project.
+
+# Example output
 ```txt
 ------------------------------------------------------------
 [05/27/25 15:35:34:062][36084][info    ]: example1 started
