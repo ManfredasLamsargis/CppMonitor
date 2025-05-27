@@ -14,7 +14,7 @@ inline void write_task(Monitor<std::vector<std::string>> &mon,
   std::stringstream ss{};
   utils::repeat(ntimes, [&ss, &hash, &mon] {
     ss << '{' << hash << '}';
-    std::chrono::duration max_time{std::chrono::seconds(2)};
+    std::chrono::duration max_time{std::chrono::seconds(1)};
     utils::random_sleep(max_time);
     mon->push_back(ss.str());
     ss.str(std::string{});
@@ -27,7 +27,7 @@ inline void read_task(Monitor<std::vector<std::string>> &mon,
     return !vec.empty();
   };
   utils::repeat(ntimes, [&mon, &hash, &vec_not_empty] {
-    std::chrono::duration max_time{std::chrono::seconds(2)};
+    std::chrono::duration max_time{std::chrono::seconds(1)};
     utils::random_sleep(max_time);
     auto vec{mon.wait_until(vec_not_empty)};
     spdlog::debug("{}: {}", hash, vec->back());

@@ -30,6 +30,8 @@ inline void repeat(const std::size_t n, F f) {
     f();
   }
 }
+
+inline void println(const std::string_view sv) { std::cout << sv << std::endl; }
 }  // namespace utils
 
 #endif

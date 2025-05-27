@@ -1,9 +1,10 @@
 #ifndef LAB1_PCH_HPP
 #define LAB1_PCH_HPP
 
-#include "log.hpp"
 #include <algorithm>
 #include <condition_variable>
+#include <iostream>
+#include <memory>
 #include <mutex>
 #include <optional>
 #include <random>
@@ -13,5 +14,7 @@
 #include <string_view>
 #include <thread>
 #include <vector>
+
+#include "log.hpp"
 
 #endif
