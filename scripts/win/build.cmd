@@ -2,7 +2,7 @@
 REM Ensure we are in the script's directory
 cd /d %~dp0
 
-cd ..
+cd ../..
 if not exist build (
     mkdir build
 )
