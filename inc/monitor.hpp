@@ -52,7 +52,7 @@ class Monitor {
   T &get_thread_unsafe_access() { return m_cl; }
 
   template <typename Predicate>
-    requires PredicateOver<Predicate, T>
+    requires PredicateOver<Predicate, const T>
   Window wait_until(Predicate pred) {
     std::unique_lock<std::mutex> lock{m_mtx};
     m_cv.wait(lock, [&pred, this] { return pred(m_cl); });
