@@ -1,12 +1,14 @@
-#ifndef LAB1_EXAMPLE_HPP
-#define LAB1_EXAMPLE_HPP
+#ifndef EXAMPLE1_HPP
+#define EXAMPLE1_HPP
 
 #include "log.hpp"
 #include "monitor.hpp"
 #include "pch.hpp"
 #include "utils.hpp"
 
-namespace mem::example {
+namespace example1 {
+using mem::Monitor;
+
 inline void write_task(Monitor<std::vector<std::string>> &mon,
                        const std::string &hash, const std::size_t ntimes) {
   std::stringstream ss{};
@@ -32,6 +34,6 @@ inline void read_task(Monitor<std::vector<std::string>> &mon,
     vec->pop_back();
   });
 }
-}  // namespace mem::example
+}  // namespace example1
 
 #endif
