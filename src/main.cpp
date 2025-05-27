@@ -37,14 +37,30 @@ int main() {
   spdlog::info("example2 started");
   std::vector<std::thread> producers{};
   producers.reserve(producer_count);
-  utils::repeat(producer_count, [&producers, i = std::size_t{0}] mutable {
+#if defined(_MSC_VER)
+  std::size_t i = 0;
+  utils::repeat(producer_count, [&producers, &i] {
     producers.emplace_back(example2::producer_task, std::to_string(i++), 2);
   });
+#else
+  utils::repeat(producer_count, [&producers, i = std::size_t{0}]() mutable {
+    producers.emplace_back(example2::producer_task, std::to_string(i++), 2);
+  });
+#endif
+
   std::vector<std::thread> consumers{};
   consumers.reserve(consumer_count);
-  utils::repeat(consumer_count, [&consumers, i = std::size_t{0}] mutable {
-    consumers.emplace_back(example2::consumer_task, std::to_string(i++));
+#if defined(_MSC_VER)
+  std::size_t j = 0;
+  utils::repeat(consumer_count, [&consumers, &j] {
+    consumers.emplace_back(example2::consumer_task, std::to_string(j++));
   });
+#else
+  utils::repeat(consumer_count, [&consumers, j = std::size_t{0}]() mutable {
+    consumers.emplace_back(example2::consumer_task, std::to_string(j++));
+  });
+#endif
+
   std::for_each(producers.begin(), producers.end(),
                 [](std::thread &t) { t.join(); });
   std::for_each(consumers.begin(), consumers.end(),
