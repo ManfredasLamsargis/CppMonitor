@@ -13,9 +13,8 @@ using mem::Monitor;
 inline void producer_task(const std::string &hash, const std::size_t ntimes) {
   std::stringstream ss{};
   utils::repeat(ntimes, [&ss, &hash] {
-    ss << "produced:";
+    ss << "{producer:" << hash << '}';
     utils::random_sleep(std::chrono::seconds(1));
-    ss << '{' << hash << '}';
     mon_ptr->pause()->push_back(ss.str());
     ss.str(std::string{});
   });
@@ -23,14 +22,14 @@ inline void producer_task(const std::string &hash, const std::size_t ntimes) {
 }
 
 inline void consumer_task(const std::string &hash) {
-  auto vec_not_empty_or_done = [](const std::vector<std::string> &vec) -> bool {
+  auto can_consume_or_done = [](const std::vector<std::string> &vec) -> bool {
     return !vec.empty() || flg_ptr->pause()->task_completed();
   };
   while (true) {
     utils::random_sleep(std::chrono::seconds(2));
-    auto vec_window{mon_ptr->wait_until(vec_not_empty_or_done)};
+    auto vec_window{mon_ptr->wait_until(can_consume_or_done)};
     if (!vec_window->empty()) {
-      spdlog::debug("consumed: {} => {}", hash, vec_window->back());
+      spdlog::debug("consumer: {} => {}", hash, vec_window->back());
     } else {
       flg_ptr->pause()->consumer_declare_exit();
       break;
