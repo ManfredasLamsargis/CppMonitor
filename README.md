@@ -1,4 +1,5 @@
-To build a project run build script (requires CMake):
+To build a project run build script (requires CMake).
+For linux:
 ```bash
 ./scripts/build.sh
 ```
