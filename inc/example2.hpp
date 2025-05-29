@@ -3,11 +3,25 @@
 #include "monitor.hpp"
 #include "utils.hpp"
 
+namespace example2 {
+class Flag {
+ private:
+  std::size_t m_prod;  // producer count
+  std::size_t m_con;   // consumer count
+ public:
+  Flag(const std::size_t prod_cnt, const std::size_t con_cnt)
+      : m_prod{prod_cnt}, m_con{con_cnt} {}
+  void producer_declare_exit() { m_prod--; }
+  void consumer_declare_exit() { m_con--; }
+  bool task_completed() const { return m_prod == 0; }
+};
+}  // namespace example2
+
 extern std::shared_ptr<mem::Monitor<std::vector<std::string>>> mon_ptr;
-extern std::shared_ptr<mem::Monitor<mem::Flag>> flg_ptr;
+extern std::shared_ptr<mem::Monitor<example2::Flag>> flg_ptr;
 
 namespace example2 {
-using mem::Flag;
+
 using mem::Monitor;
 
 inline void producer_task(const std::string &hash, const std::size_t ntimes) {

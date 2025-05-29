@@ -9,8 +9,9 @@ constexpr std::size_t consumer_count{5};
 
 std::shared_ptr<mem::Monitor<std::vector<std::string>>> mon_ptr{
     std::make_shared<mem::Monitor<std::vector<std::string>>>()};
-std::shared_ptr<mem::Monitor<mem::Flag>> flg_ptr{
-    std::make_shared<mem::Monitor<mem::Flag>>(producer_count, consumer_count)};
+std::shared_ptr<mem::Monitor<example2::Flag>> flg_ptr{
+    std::make_shared<mem::Monitor<example2::Flag>>(producer_count,
+                                                   consumer_count)};
 
 int main() {
   using mem::Monitor;
