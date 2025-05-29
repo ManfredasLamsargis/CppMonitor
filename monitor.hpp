@@ -1,7 +1,8 @@
-#ifndef MONITOR_HPP
-#define MONITOR_HPP
+#pragma once
 
-#include "pch.hpp"
+#include <condition_variable>
+#include <functional>
+#include <mutex>
 
 namespace mem {
 template <typename F, typename T>
@@ -60,5 +61,3 @@ class Monitor {
   }
 };
 }  // namespace mem
-
-#endif

@@ -1,9 +1,12 @@
 #pragma once
 
+#include <format>
+#include <sstream>
+
 #include "monitor.hpp"
 #include "utils.hpp"
 
-namespace example2 {
+namespace ex {
 class Flag {
  private:
   std::size_t m_prod;  // producer count
@@ -15,12 +18,12 @@ class Flag {
   void consumer_declare_exit() { m_con--; }
   bool task_completed() const { return m_prod == 0; }
 };
-}  // namespace example2
+}  // namespace ex
 
 extern std::shared_ptr<mem::Monitor<std::vector<std::string>>> mon_ptr;
-extern std::shared_ptr<mem::Monitor<example2::Flag>> flg_ptr;
+extern std::shared_ptr<mem::Monitor<ex::Flag>> flg_ptr;
 
-namespace example2 {
+namespace ex {
 
 using mem::Monitor;
 
@@ -32,6 +35,7 @@ inline void producer_task(const std::string &hash, const std::size_t ntimes) {
     mon_ptr->pause()->push_back(ss.str());
     ss.str(std::string{});
   });
+  utils::println(std::format("pruducer {} exited", hash));
   flg_ptr->pause()->producer_declare_exit();
 }
 
@@ -43,13 +47,14 @@ inline void consumer_task(const std::string &hash) {
     utils::random_sleep(std::chrono::seconds(2));
     auto vec_window{mon_ptr->wait_until(can_consume_or_done)};
     if (!vec_window->empty()) {
-      spdlog::debug("consumer: {} => {}", hash, vec_window->back());
+      utils::println(
+          std::format("consumer: {} => {}", hash, vec_window->back()));
     } else {
-      flg_ptr->pause()->consumer_declare_exit();
       break;
     }
     vec_window->pop_back();
   }
+  utils::println(std::format("consumer {} exited", hash));
+  flg_ptr->pause()->consumer_declare_exit();
 }
-
-}  // namespace example2
+}  // namespace ex

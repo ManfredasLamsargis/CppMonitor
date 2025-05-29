@@ -1,16 +1,17 @@
-#ifndef EXAMPLE1_HPP
-#define EXAMPLE1_HPP
+#pragma once
 
-#include "log.hpp"
+#include <format>
+#include <sstream>
+#include <string>
+#include <vector>
+
 #include "monitor.hpp"
-#include "pch.hpp"
 #include "utils.hpp"
 
-namespace example1 {
 using mem::Monitor;
-
-inline void write_task(Monitor<std::vector<std::string>> &mon,
-                       const std::string &hash, const std::size_t ntimes) {
+namespace ex {
+void write_task(Monitor<std::vector<std::string>> &mon, const std::string &hash,
+                const std::size_t ntimes) {
   std::stringstream ss{};
   utils::repeat(ntimes, [&ss, &hash, &mon] {
     ss << '{' << hash << '}';
@@ -21,8 +22,8 @@ inline void write_task(Monitor<std::vector<std::string>> &mon,
   });
 }
 
-inline void read_task(Monitor<std::vector<std::string>> &mon,
-                      const std::string &hash, const std::size_t ntimes) {
+void read_task(Monitor<std::vector<std::string>> &mon, const std::string &hash,
+               const std::size_t ntimes) {
   auto vec_not_empty = [](const std::vector<std::string> &vec) -> bool {
     return !vec.empty();
   };
@@ -30,10 +31,8 @@ inline void read_task(Monitor<std::vector<std::string>> &mon,
     std::chrono::duration max_time{std::chrono::seconds(1)};
     utils::random_sleep(max_time);
     auto vec{mon.wait_until(vec_not_empty)};
-    spdlog::debug("{}: {}", hash, vec->back());
+    utils::println(std::format("{}: {}", hash, vec->back()));
     vec->pop_back();
   });
 }
-}  // namespace example1
-
-#endif
+}

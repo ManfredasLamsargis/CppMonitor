@@ -13,5 +13,6 @@ if [ ! -f CMakeCache.txt ]; then
   cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE="Release" ..
 fi
 
+# cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE="Release" -DBUILD_EXAMPLES=ON ..
 cmake --build . --config "Release"
 cd ..

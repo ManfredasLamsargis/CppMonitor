@@ -1,7 +1,7 @@
-#ifndef UTILS_HPP
-#define UTILS_HPP
+#pragma once
 
-#include "pch.hpp"
+#include <iostream>
+#include <random>
 
 namespace utils {
 inline void random_sleep(const std::chrono::microseconds min,
@@ -33,5 +33,3 @@ inline void repeat(const std::size_t n, F f) {
 
 inline void println(const std::string_view sv) { std::cout << sv << std::endl; }
 }  // namespace utils
-
-#endif

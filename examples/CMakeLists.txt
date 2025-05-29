@@ -1,0 +1,2 @@
+add_subdirectory(flagged_sync)
+add_subdirectory(vector_sync)
