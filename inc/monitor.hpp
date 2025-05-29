@@ -5,7 +5,7 @@
 
 namespace mem {
 template <typename F, typename T>
-concept PredicateOver = requires(F f, const T &val) {
+concept PredicateOver = requires(F f, T &val) {
   { std::invoke(f, val) } -> std::same_as<bool>;
 };
 
