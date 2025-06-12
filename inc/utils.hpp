@@ -1,5 +1,6 @@
 #pragma once
 
+#include <format>
 #include <iostream>
 #include <random>
 
@@ -31,5 +32,8 @@ inline void repeat(const std::size_t n, F f) {
   }
 }
 
-inline void println(const std::string_view sv) { std::cout << sv << std::endl; }
+template <typename... Args>
+inline void println(const std::format_string<Args...> fmt, Args&&... args) {
+  std::cout << std::format(fmt, std::forward<Args>(args)...) << std::endl;
+}
 }  // namespace utils
