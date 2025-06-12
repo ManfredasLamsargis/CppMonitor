@@ -1,6 +1,5 @@
 #pragma once
 
-#include <format>
 #include <sstream>
 
 #include "monitor.hpp"
@@ -35,7 +34,7 @@ inline void producer_task(const std::string &hash, const std::size_t ntimes) {
     mon_ptr->pause()->push_back(ss.str());
     ss.str(std::string{});
   });
-  utils::println(std::format("pruducer {} exited", hash));
+  utils::println("pruducer {} exited", hash);
   flg_ptr->pause()->producer_declare_exit();
 }
 
@@ -47,14 +46,13 @@ inline void consumer_task(const std::string &hash) {
     utils::random_sleep(std::chrono::seconds(2));
     auto vec_window{mon_ptr->wait_until(can_consume_or_done)};
     if (!vec_window->empty()) {
-      utils::println(
-          std::format("consumer: {} => {}", hash, vec_window->back()));
+      utils::println("consumer: {} => {}", hash, vec_window->back());
     } else {
       break;
     }
     vec_window->pop_back();
   }
-  utils::println(std::format("consumer {} exited", hash));
+  utils::println("consumer {} exited", hash);
   flg_ptr->pause()->consumer_declare_exit();
 }
 }  // namespace ex

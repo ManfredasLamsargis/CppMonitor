@@ -1,6 +1,5 @@
 #pragma once
 
-#include <format>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -31,7 +30,7 @@ void read_task(Monitor<std::vector<std::string>> &mon, const std::string &hash,
     std::chrono::duration max_time{std::chrono::seconds(1)};
     utils::random_sleep(max_time);
     auto vec{mon.wait_until(vec_not_empty)};
-    utils::println(std::format("{}: {}", hash, vec->back()));
+    utils::println("{}: {}", hash, vec->back());
     vec->pop_back();
   });
 }
