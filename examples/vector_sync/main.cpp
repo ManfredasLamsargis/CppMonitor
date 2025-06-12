@@ -3,11 +3,9 @@
 #include "example.hpp"
 
 int main() {
-  std::vector<std::string> vec{};
-  Monitor<std::vector<std::string>> mon{vec};
-  std::jthread writer_0{ex::write_task, std::ref(mon), "a", 5};
-  std::jthread writer_1{ex::write_task, std::ref(mon), "b", 5};
-  std::jthread writer_2{ex::write_task, std::ref(mon), "c", 2};
-  std::jthread reader{ex::read_task, std::ref(mon), "reader", 12};
+  constexpr std::size_t repeat_n{5};
+  Monitor<std::vector<std::string>> mon;
+  std::jthread writer{ex::write_task, std::ref(mon), "writer", repeat_n};
+  std::jthread reader{ex::read_task, std::ref(mon), "reader", repeat_n};
   return 0;
 }
