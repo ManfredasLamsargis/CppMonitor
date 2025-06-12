@@ -1,4 +1,5 @@
 #include <memory>
+#include <thread>
 
 #include "example.hpp"
 
@@ -13,7 +14,7 @@ std::shared_ptr<Monitor<ex::Flag>> flg_ptr{
     std::make_shared<Monitor<ex::Flag>>(producer_count, consumer_count)};
 
 int main() {
-  std::vector<std::thread> producers{};
+  std::vector<std::jthread> producers{};
   producers.reserve(producer_count);
 #if defined(_MSC_VER)
   std::size_t i = 0;
@@ -25,7 +26,7 @@ int main() {
     producers.emplace_back(ex::producer_task, std::to_string(i++), 2);
   });
 #endif
-  std::vector<std::thread> consumers{};
+  std::vector<std::jthread> consumers{};
   consumers.reserve(consumer_count);
 #if defined(_MSC_VER)
   std::size_t j = 0;
@@ -37,9 +38,5 @@ int main() {
     consumers.emplace_back(ex::consumer_task, std::to_string(j++));
   });
 #endif
-  std::for_each(producers.begin(), producers.end(),
-                [](std::thread &t) { t.join(); });
-  std::for_each(consumers.begin(), consumers.end(),
-                [](std::thread &t) { t.join(); });
   return 0;
 }
