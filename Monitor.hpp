@@ -45,6 +45,9 @@ class Monitor {
     T *operator->() { return &m_monitor_ref.m_shared_resource; }
 
     ~Window() {
+      if (!m_lock.owns_lock()) {
+        return;
+      }
       if (m_notify_policy == NotifyPolicy::notify_all) {
         m_monitor_ref.m_convar.notify_all();
       } else {
