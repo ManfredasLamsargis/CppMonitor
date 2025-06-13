@@ -1,6 +1,8 @@
-# Build Project
-After cloning project go to the project's root directory.
+# Build project
+After cloning project go to the project's root directory and manually create `build` directory.
+
 ## Linux
+
 To build a project run build script (requires CMake).
 ```bash
 ./scripts/linux/build.sh
