@@ -5,10 +5,12 @@
 #include <mutex>
 
 namespace mem {
+namespace concepts {
 template <typename F, typename T>
 concept PredicateOver = requires(F f, T &val) {
   { std::invoke(f, val) } -> std::same_as<bool>;
 };
+}  // namespace concepts
 
 template <typename T>
 class Monitor {
@@ -53,7 +55,7 @@ class Monitor {
   T &get_thread_unsafe_access() { return m_cl; }
 
   template <typename Predicate>
-    requires PredicateOver<Predicate, const T>
+    requires concepts::PredicateOver<Predicate, const T>
   Window wait_until(Predicate pred) {
     std::unique_lock<std::mutex> lock{m_mtx};
     m_cv.wait(lock, [&pred, this] { return pred(m_cl); });

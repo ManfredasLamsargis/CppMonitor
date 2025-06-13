@@ -5,6 +5,13 @@
 #include <random>
 
 namespace utils {
+namespace concepts {
+template <typename F>
+concept VoidFunction = requires(F f) {
+  { std::invoke(f) } -> std::same_as<void>;
+};
+}  // namespace concepts
+
 inline void random_sleep(const std::chrono::microseconds min,
                          const std::chrono::microseconds max) {
   std::random_device rnd_dev;
@@ -20,12 +27,7 @@ inline void random_sleep(const std::chrono::microseconds max) {
 }
 
 template <typename F>
-concept VoidFunction = requires(F f) {
-  { std::invoke(f) } -> std::same_as<void>;
-};
-
-template <typename F>
-  requires VoidFunction<F>
+  requires concepts::VoidFunction<F>
 inline void repeat(const std::size_t n, F f) {
   for (std::size_t i = 0; i < n; i++) {
     f();
