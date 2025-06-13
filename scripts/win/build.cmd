@@ -9,7 +9,7 @@ if not exist build (
 cd build
 
 if not exist CMakeCache.txt (
-    cmake -DCMAKE_BUILD_TYPE=Release ..
+    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_BUILD_TYPE="Release" -DBUILD_EXAMPLES=ON ..
 )
 
 cmake --build . --config Release

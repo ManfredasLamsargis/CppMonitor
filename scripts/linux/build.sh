@@ -10,9 +10,8 @@ mkdir -p build
 cd build || exit
 
 if [ ! -f CMakeCache.txt ]; then
-  cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE="Release" ..
+  cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE="Release" -DBUILD_EXAMPLES=ON ..
 fi
 
-# cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE="Release" -DBUILD_EXAMPLES=ON ..
 cmake --build . --config "Release"
 cd ..
