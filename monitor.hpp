@@ -73,10 +73,8 @@ class Monitor {
       : m_shared_resource{std::forward<Args>(args)...},
         m_def_notify_policy{Window::NotifyPolicy::notify_all} {}
 
-  template <typename... Args>
-  explicit Monitor(Args &&...args, Window::NotifyPolicy default_notify_policy)
-      : m_shared_resource{std::forward<Args>(args)...},
-        m_def_notify_policy{default_notify_policy} {}
+  explicit Monitor(Window::NotifyPolicy default_notify_policy)
+      : m_shared_resource{}, m_def_notify_policy{default_notify_policy} {}
 
   Monitor(const Monitor &) = delete;
   Monitor &operator=(const Monitor &) = delete;
