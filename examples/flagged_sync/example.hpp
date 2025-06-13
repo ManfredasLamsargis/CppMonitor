@@ -44,7 +44,7 @@ inline void consumer_task(const std::string &hash) {
   };
   while (true) {
     utils::random_sleep(std::chrono::seconds(2));
-    auto vec_window{mon_ptr->wait_until(can_consume_or_done)};
+    auto vec_window{mon_ptr->wait(can_consume_or_done)};
     if (!vec_window->empty()) {
       utils::println("consumer: {} => {}", hash, vec_window->back());
     } else {

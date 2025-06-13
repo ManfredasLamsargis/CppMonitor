@@ -29,7 +29,7 @@ void read_task(Monitor<std::vector<std::string>> &mon, const std::string &hash,
   utils::repeat(ntimes, [&mon, &hash, &vec_not_empty] {
     std::chrono::duration max_time{std::chrono::seconds(1)};
     utils::random_sleep(max_time);
-    auto vec{mon.wait_until(vec_not_empty)};
+    auto vec{mon.wait(vec_not_empty)};
     utils::println("{}: {}", hash, vec->back());
     vec->pop_back();
   });

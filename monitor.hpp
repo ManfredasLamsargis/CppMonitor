@@ -21,78 +21,99 @@ class Monitor {
     enum class NotifyPolicy { notify_one, notify_all };
 
    private:
-    Monitor &m_mon;
+    Monitor &m_monitor_ref;
     std::unique_lock<std::mutex> m_lock;
-    NotifyPolicy m_policy;
+    NotifyPolicy m_notify_policy;
 
    public:
     Window(Monitor &mon)
-        : m_mon{mon}, m_lock{mon.m_mtx}, m_policy{NotifyPolicy::notify_all} {}
+        : m_monitor_ref{mon},
+          m_lock{mon.m_mutex},
+          m_notify_policy{NotifyPolicy::notify_all} {}
 
-    Window(Monitor &mon, NotifyPolicy policy)
-        : m_mon{mon}, m_lock{mon.m_mtx}, m_policy{policy} {}
+    Window(Monitor &mon, NotifyPolicy notify_policy)
+        : m_monitor_ref{mon},
+          m_lock{mon.m_mutex},
+          m_notify_policy{notify_policy} {}
 
     Window(Monitor &mon, std::unique_lock<std::mutex> &&lock)
-        : m_mon{mon},
+        : m_monitor_ref{mon},
           m_lock{std::move(lock)},
-          m_policy{NotifyPolicy::notify_all} {}
+          m_notify_policy{NotifyPolicy::notify_all} {}
 
     Window(Monitor &mon, std::unique_lock<std::mutex> &&lock,
-           NotifyPolicy policy)
-        : m_mon{mon}, m_lock{std::move(lock)}, m_policy{policy} {}
+           NotifyPolicy notify_policy)
+        : m_monitor_ref{mon},
+          m_lock{std::move(lock)},
+          m_notify_policy{notify_policy} {}
 
     Window(const Window &) = delete;
 
     Window &operator=(const Window &) = delete;
 
-    T *operator->() { return &m_mon.m_cl; }
+    T *operator->() { return &m_monitor_ref.m_shared_resource; }
 
     ~Window() {
-      if (m_policy == NotifyPolicy::notify_all) {
-        m_mon.m_cv.notify_all();
+      if (m_notify_policy == NotifyPolicy::notify_all) {
+        m_monitor_ref.m_convar.notify_all();
       } else {
-        m_mon.m_cv.notify_one();
+        m_monitor_ref.m_convar.notify_one();
       }
     }
   };
 
  private:
-  T m_cl;
-  std::mutex m_mtx;
-  std::condition_variable m_cv;
-  Window::NotifyPolicy m_default_policy;
+  T m_shared_resource;
+  std::mutex m_mutex;
+  std::condition_variable m_convar;
+  Window::NotifyPolicy m_def_notify_policy;
 
  public:
   template <typename... Args>
   explicit Monitor(Args &&...args)
-      : m_cl{std::forward<Args>(args)...},
-        m_default_policy{Window::NotifyPolicy::notify_all} {}
+      : m_shared_resource{std::forward<Args>(args)...},
+        m_def_notify_policy{Window::NotifyPolicy::notify_all} {}
 
   template <typename... Args>
-  explicit Monitor(Args &&...args, Window::NotifyPolicy default_policy)
-      : m_cl{std::forward<Args>(args)...}, m_default_policy{default_policy} {}
+  explicit Monitor(Args &&...args, Window::NotifyPolicy default_notify_policy)
+      : m_shared_resource{std::forward<Args>(args)...},
+        m_def_notify_policy{default_notify_policy} {}
 
   Monitor(const Monitor &) = delete;
   Monitor &operator=(const Monitor &) = delete;
   Monitor(Monitor &&) = delete;
   Monitor &operator=(Monitor &&) = delete;
 
-  Window operator->() { return Window{*this, m_default_policy}; }
+  Window operator->() { return Window{*this, m_def_notify_policy}; }
 
-  Window pause() { return Window{*this, m_default_policy}; }
+  Window pause() { return Window{*this, m_def_notify_policy}; }
 
-  Window pause(Window::NotifyPolicy tmp_policy) {
-    return Window(*this, tmp_policy);
+  Window pause(Window::NotifyPolicy notify_policy) {
+    return Window(*this, notify_policy);
   }
 
-  T &get_thread_unsafe_access() { return m_cl; }
+  T &get_thread_unsafe_access() { return m_shared_resource; }
+
+ private:
+  template <typename Predicate>
+    requires concepts::PredicateOver<Predicate, const T>
+  Window wait_handle(Predicate pred, Window::NotifyPolicy notify_policy) {
+    std::unique_lock<std::mutex> lock{m_mutex};
+    m_convar.wait(lock, [&pred, this] { return pred(m_shared_resource); });
+    return Window{*this, std::move(lock), notify_policy};
+  }
+
+ public:
+  template <typename Predicate>
+    requires concepts::PredicateOver<Predicate, const T>
+  Window wait(Predicate pred) {
+    return wait_handle(pred, m_def_notify_policy);
+  }
 
   template <typename Predicate>
     requires concepts::PredicateOver<Predicate, const T>
-  Window wait_until(Predicate pred) {
-    std::unique_lock<std::mutex> lock{m_mtx};
-    m_cv.wait(lock, [&pred, this] { return pred(m_cl); });
-    return Window{*this, std::move(lock), m_default_policy};
+  Window wait(Predicate pred, Window::NotifyPolicy notify_policy) {
+    return wait_handle(pred, notify_policy);
   }
 };
 }  // namespace mem
