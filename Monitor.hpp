@@ -17,7 +17,7 @@ class Monitor {
  public:
   class Window {
    public:
-    enum class NotifyPolicy { notify_one, notify_all };
+    enum class NotifyPolicy { none, notify_one, notify_all };
 
    private:
     Monitor &m_monitor_ref;
@@ -51,10 +51,15 @@ class Monitor {
         return;
       }
       m_lock.unlock();
-      if (m_notify_policy == NotifyPolicy::notify_all) {
-        m_monitor_ref.m_convar.notify_all();
-      } else {
-        m_monitor_ref.m_convar.notify_one();
+      switch (m_notify_policy) {
+        case NotifyPolicy::none:
+          return;
+        case NotifyPolicy::notify_one:
+          m_monitor_ref.m_convar.notify_one();
+          return;
+        case NotifyPolicy::notify_all:
+          m_monitor_ref.m_convar.notify_all();
+          return;
       }
     }
   };
