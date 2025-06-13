@@ -3,6 +3,7 @@
 #include <condition_variable>
 #include <functional>
 #include <mutex>
+#include <optional>
 
 namespace mem {
 namespace concepts {
@@ -14,30 +15,31 @@ concept PredicateOver = requires(F f, T &val) {
 
 template <typename T>
 class Monitor {
- private:
-  T m_cl;
-  std::mutex m_mtx;
-  std::condition_variable m_cv;
-
  public:
-  template <typename... Args>
-  explicit Monitor(Args &&...args) : m_cl{std::forward<Args>(args)...} {}
-
-  Monitor(const Monitor &) = delete;
-  Monitor &operator=(const Monitor &) = delete;
-  Monitor(Monitor &&) = delete;
-  Monitor &operator=(Monitor &&) = delete;
-
   class Window {
+   public:
+    enum class NotifyPolicy { notify_one, notify_all };
+
    private:
     Monitor &m_mon;
     std::unique_lock<std::mutex> m_lock;
+    NotifyPolicy m_policy;
 
    public:
-    Window(Monitor &mon) : m_mon{mon}, m_lock{mon.m_mtx} {}
+    Window(Monitor &mon)
+        : m_mon{mon}, m_lock{mon.m_mtx}, m_policy{NotifyPolicy::notify_all} {}
+
+    Window(Monitor &mon, NotifyPolicy policy)
+        : m_mon{mon}, m_lock{mon.m_mtx}, m_policy{policy} {}
 
     Window(Monitor &mon, std::unique_lock<std::mutex> &&lock)
-        : m_mon{mon}, m_lock{std::move(lock)} {}
+        : m_mon{mon},
+          m_lock{std::move(lock)},
+          m_policy{NotifyPolicy::notify_all} {}
+
+    Window(Monitor &mon, std::unique_lock<std::mutex> &&lock,
+           NotifyPolicy policy)
+        : m_mon{mon}, m_lock{std::move(lock)}, m_policy{policy} {}
 
     Window(const Window &) = delete;
 
@@ -45,12 +47,43 @@ class Monitor {
 
     T *operator->() { return &m_mon.m_cl; }
 
-    ~Window() { m_mon.m_cv.notify_all(); }
+    ~Window() {
+      if (m_policy == NotifyPolicy::notify_all) {
+        m_mon.m_cv.notify_all();
+      } else {
+        m_mon.m_cv.notify_one();
+      }
+    }
   };
 
-  Window operator->() { return Window{*this}; }
+ private:
+  T m_cl;
+  std::mutex m_mtx;
+  std::condition_variable m_cv;
+  Window::NotifyPolicy m_default_policy;
 
-  Window pause() { return Window{*this}; }
+ public:
+  template <typename... Args>
+  explicit Monitor(Args &&...args)
+      : m_cl{std::forward<Args>(args)...},
+        m_default_policy{Window::NotifyPolicy::notify_all} {}
+
+  template <typename... Args>
+  explicit Monitor(Args &&...args, Window::NotifyPolicy default_policy)
+      : m_cl{std::forward<Args>(args)...}, m_default_policy{default_policy} {}
+
+  Monitor(const Monitor &) = delete;
+  Monitor &operator=(const Monitor &) = delete;
+  Monitor(Monitor &&) = delete;
+  Monitor &operator=(Monitor &&) = delete;
+
+  Window operator->() { return Window{*this, m_default_policy}; }
+
+  Window pause() { return Window{*this, m_default_policy}; }
+
+  Window pause(Window::NotifyPolicy tmp_policy) {
+    return Window(*this, tmp_policy);
+  }
 
   T &get_thread_unsafe_access() { return m_cl; }
 
@@ -59,7 +92,7 @@ class Monitor {
   Window wait_until(Predicate pred) {
     std::unique_lock<std::mutex> lock{m_mtx};
     m_cv.wait(lock, [&pred, this] { return pred(m_cl); });
-    return Window{*this, std::move(lock)};
+    return Window{*this, std::move(lock), m_default_policy};
   }
 };
 }  // namespace mem
