@@ -47,7 +47,6 @@ class Monitor {
           m_notify_policy{notify_policy} {}
 
     Window(const Window &) = delete;
-
     Window &operator=(const Window &) = delete;
 
     T *operator->() { return &m_monitor_ref.m_shared_resource; }
