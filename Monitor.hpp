@@ -25,20 +25,10 @@ class Monitor {
     NotifyPolicy m_notify_policy;
 
    public:
-    Window(Monitor &mon)
-        : m_monitor_ref{mon},
-          m_lock{mon.m_mutex},
-          m_notify_policy{NotifyPolicy::notify_all} {}
-
     Window(Monitor &mon, NotifyPolicy notify_policy)
         : m_monitor_ref{mon},
           m_lock{mon.m_mutex},
           m_notify_policy{notify_policy} {}
-
-    Window(Monitor &mon, std::unique_lock<std::mutex> &&lock)
-        : m_monitor_ref{mon},
-          m_lock{std::move(lock)},
-          m_notify_policy{NotifyPolicy::notify_all} {}
 
     Window(Monitor &mon, std::unique_lock<std::mutex> &&lock,
            NotifyPolicy notify_policy)
