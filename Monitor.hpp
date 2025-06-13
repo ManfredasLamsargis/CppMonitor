@@ -7,8 +7,12 @@
 namespace mem {
 namespace concepts {
 template <typename F, typename T>
-concept PredicateOver = requires(F f, T &val) {
-  { std::invoke(f, val) } -> std::same_as<bool>;
+concept PredicateOver = requires(F f, T &t) {
+  { std::invoke(f, t) } -> std::same_as<bool>;
+};
+template <typename F, typename T>
+concept ActionOn = requires(F f, T &t) {
+  { std::invoke(f, t) } -> std::same_as<void>;
 };
 }  // namespace concepts
 
@@ -45,6 +49,19 @@ class Monitor {
     T *operator->() { return &m_monitor_ref.m_shared_resource; }
 
     bool owns_resource() const noexcept { return m_lock.owns_lock(); }
+
+    template <typename F>
+      requires concepts::ActionOn<F, T>
+    Window &&then(F f) {
+      f(this->m_monitor_ref.m_shared_resource);
+      return std::move(*this);
+    }
+
+    template <typename F>
+      requires concepts::ActionOn<F, T>
+    void finally(F f) {
+      f(this->m_monitor_ref.m_shared_resource);
+    }
 
     ~Window() {
       if (!m_lock.owns_lock()) {
