@@ -36,6 +36,9 @@ class Monitor {
           m_lock{std::move(lock)},
           m_notify_policy{notify_policy} {}
 
+    Window(Window &&) noexcept = default;
+    Window &operator=(Window &&) noexcept = default;
+
     Window(const Window &) = delete;
     Window &operator=(const Window &) = delete;
 
