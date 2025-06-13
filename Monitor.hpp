@@ -50,6 +50,7 @@ class Monitor {
       if (!m_lock.owns_lock()) {
         return;
       }
+      m_lock.unlock();
       if (m_notify_policy == NotifyPolicy::notify_all) {
         m_monitor_ref.m_convar.notify_all();
       } else {
