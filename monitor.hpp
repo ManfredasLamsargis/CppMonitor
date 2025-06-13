@@ -3,7 +3,6 @@
 #include <condition_variable>
 #include <functional>
 #include <mutex>
-#include <optional>
 
 namespace mem {
 namespace concepts {
