@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "monitor.hpp"
+#include "Monitor.hpp"
 #include "utils.hpp"
 
 using mem::Monitor;

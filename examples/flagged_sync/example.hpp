@@ -2,7 +2,7 @@
 
 #include <sstream>
 
-#include "monitor.hpp"
+#include "Monitor.hpp"
 #include "utils.hpp"
 
 namespace ex {
