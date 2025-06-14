@@ -24,3 +24,10 @@ option(BUILD_EXAMPLES "Build example programs" OFF)
 if(BUILD_EXAMPLES)
   add_subdirectory(examples)
 endif()
+
+option(BUILD_TESTS "Build unit tests" OFF)
+
+if(BUILD_TESTS)
+  enable_testing()
+  add_subdirectory(test)
+endif()
