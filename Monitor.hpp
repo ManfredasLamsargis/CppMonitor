@@ -103,9 +103,9 @@ class Monitor {
 
   Window operator->() { return Window{*this, m_def_notify_policy}; }
 
-  Window pause() { return Window{*this, m_def_notify_policy}; }
+  Window lock() { return Window{*this, m_def_notify_policy}; }
 
-  Window pause(Window::NotifyPolicy notify_policy) {
+  Window lock(Window::NotifyPolicy notify_policy) {
     return Window(*this, notify_policy);
   }
 
