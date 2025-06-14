@@ -1,20 +1,55 @@
 #! /bin/bash
 
-# Source: https://mywiki.wooledge.org/BashFAQ/028 (last checked 19.04.25).
-if [[ $BASH_SOURCE = */* ]]; then
-  CDPATH= cd -- "${BASH_SOURCE%/*}/" || exit
-fi
+# Stop script on errors
+set -euo pipefail
 
-cd ../.. || exit
+readonly SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
+readonly PROJECT_ROOT="$SCRIPT_DIR/../.."
+readonly BUILD_DIR="$PROJECT_ROOT/build"
+
+CLEAN_BUILD=false
+BUILD_EXAMPLES=false
+BUILD_TESTS=false
+RUN_TESTS=false
+
+while [ $# -gt 0 ]; do
+  case $1 in
+  --clean)
+    CLEAN_BUILD=true
+    ;;
+  --build-examples)
+    BUILD_EXAMPLES=true
+    ;;
+  --build-tests)
+    BUILD_TESTS=true
+    ;;
+  --run-tests)
+    RUN_TESTS=true
+    ;;
+  esac
+  shift
+done
+
 mkdir -p build
-cd build || exit
+cd "$BUILD_DIR" || exit
 
-if [ ! -f CMakeCache.txt ]; then
-  cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE="Release" -DBUILD_EXAMPLES=ON -DBUILD_TESTS=ON ..
+if $CLEAN_BUILD; then
+  cd "$PROJECT_ROOT" && rm -rf build/*
 fi
 
-cmake --build . --config "Release"
+cd "$BUILD_DIR" || exit
 
-ctest
+cmake \
+  -G "Unix Makefiles" \
+  -DCMAKE_BUILD_TYPE="Release" \
+  -DBUILD_EXAMPLES=$BUILD_EXAMPLES \
+  -DBUILD_TESTS=$BUILD_TESTS \
+  "$PROJECT_ROOT"
+
+cmake --build "$BUILD_DIR" --config "Release"
+
+if $RUN_TESTS; then
+  cd "$BUILD_DIR" && ctest
+fi
 
 cd ..
