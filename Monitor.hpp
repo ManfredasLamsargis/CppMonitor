@@ -52,14 +52,14 @@ class Monitor {
 
     template <typename F>
       requires concepts::ActionOn<F, T>
-    Window &&then(F f) {
+    Window &&then(F f) && {
       f(this->m_monitor_ref.m_shared_resource);
       return std::move(*this);
     }
 
     template <typename F>
       requires concepts::ActionOn<F, T>
-    void finally(F f) {
+    void finally(F f) && {
       f(this->m_monitor_ref.m_shared_resource);
     }
 
