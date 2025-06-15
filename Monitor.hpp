@@ -95,6 +95,8 @@ class Monitor {
       f(this->m_monitor_ref.m_shared_resource);
     }
 
+    void unlock() && {}
+
     ~AccessGuard() {
       if (!m_lock.owns_lock()) {
         return;
@@ -142,6 +144,10 @@ class Monitor {
   }
 
   T &get_thread_unsafe_access() { return m_shared_resource; }
+
+  AccessGuard::NotifyPolicy default_notify_policy() const {
+    return m_def_notify_policy;
+  }
 
  private:
   template <typename Predicate>
