@@ -64,7 +64,11 @@ class Monitor {
 
     template <typename F>
       requires concepts::ActionOn<F, T>
-    [[nodiscard]] AccessGuard &&then(F f) && {
+    [[nodiscard(
+        "Chainable method used as a terminal operation. Consider using "
+        "execute() "
+        "or before_release().")]] AccessGuard &&
+    then(F f) && {
       f(this->m_monitor_ref.m_shared_resource);
       return std::move(*this);
     }
@@ -77,7 +81,10 @@ class Monitor {
 
     template <typename F>
       requires concepts::ReadOnlyActionOn<F, T>
-    [[nodiscard]] AccessGuard &&then_check(F f) && {
+    [[nodiscard(
+        "Chainable method used as a terminal operation. Consider using "
+        "check().")]] AccessGuard &&
+    then_check(F f) && {
       f(this->m_monitor_ref.m_shared_resource);
       return std::move(*this);
     }
