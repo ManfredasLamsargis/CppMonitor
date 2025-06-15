@@ -5,19 +5,13 @@ project(Monitor)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-file(GLOB SOURCE_FILES src/*.cpp)
-
-add_executable(${PROJECT_NAME} ${SOURCE_FILES})
-
 if(MSVC)
   add_compile_options(/W4)
 else()
-  target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic
-                                                 -Werror)
+  add_compile_options(-Wall -Wextra -Wpedantic -Werror)
 endif()
 
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}
-                                                   ${CMAKE_SOURCE_DIR}/inc)
+include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/inc)
 
 option(BUILD_EXAMPLES "Build example programs" OFF)
 
