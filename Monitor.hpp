@@ -10,8 +10,14 @@ template <typename F, typename T>
 concept PredicateOver = requires(F f, T &t) {
   { std::invoke(f, t) } -> std::same_as<bool>;
 };
+
 template <typename F, typename T>
 concept ActionOn = requires(F f, T &t) {
+  { std::invoke(f, t) } -> std::same_as<void>;
+};
+
+template <typename F, typename T>
+concept ReadOnlyActionOn = requires(F f, const T &t) {
   { std::invoke(f, t) } -> std::same_as<void>;
 };
 }  // namespace concepts
@@ -53,6 +59,13 @@ class Monitor {
     template <typename F>
       requires concepts::ActionOn<F, T>
     AccessGuard &&then(F f) && {
+      f(this->m_monitor_ref.m_shared_resource);
+      return std::move(*this);
+    }
+
+    template <typename F>
+      requires concepts::ReadOnlyActionOn<F, T>
+    AccessGuard &&then_check(F f) && {
       f(this->m_monitor_ref.m_shared_resource);
       return std::move(*this);
     }
