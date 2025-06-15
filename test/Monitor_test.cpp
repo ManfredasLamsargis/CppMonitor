@@ -93,6 +93,18 @@ TEST(Constructor, InitializesFromSingleValue) {
       [&](const std::string &value) { EXPECT_EQ(value, initial_value); });
 }
 
+TEST(AccessGuard, OperatorBool_CorrectlyIndicatesOwnership) {
+  Monitor<bool> monitor{};
+  auto original_guard{monitor.acquire()};
+
+  auto new_guard{std::move(original_guard)};
+
+  EXPECT_FALSE(original_guard)
+      << "The moved-from guard should evaluate to false.";
+  EXPECT_TRUE(new_guard)
+      << "The new guard should evaluate to true after a move";
+}
+
 TEST(Constructor, InitializesFromMultipleArgs) {
   constexpr std::array<int, 3> expected_value{1, 2, 3};
 

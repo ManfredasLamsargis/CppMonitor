@@ -62,6 +62,7 @@ class Monitor {
     const T &resource() const { return m_monitor_ref.m_shared_resource; }
 
     bool owns_resource() const noexcept { return m_lock.owns_lock(); }
+    explicit operator bool() const noexcept { return owns_resource(); }
 
     template <typename F>
       requires concepts::ActionOn<F, T>
