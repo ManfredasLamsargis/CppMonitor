@@ -17,9 +17,9 @@ set(BUILD_GMOCK OFF) # Disable building gmock
 
 FetchContent_MakeAvailable(googletest)
 
-file(GLOB TEST_FILES src/*.cpp)
+add_executable(monitor_test Monitor_test.cpp)
 
-add_executable(monitor_test ${TEST_FILES})
+target_include_directories(monitor_test PRIVATE ${CMAKE_SOURCE_DIR})
 
 target_link_libraries(monitor_test GTest::gtest_main)
 
