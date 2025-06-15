@@ -17,7 +17,7 @@ set(BUILD_GMOCK OFF) # Disable building gmock
 
 FetchContent_MakeAvailable(googletest)
 
-file(GLOB TEST_FILES *.cpp)
+file(GLOB TEST_FILES src/*.cpp)
 
 add_executable(monitor_test ${TEST_FILES})
 
