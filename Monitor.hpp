@@ -58,14 +58,26 @@ class Monitor {
 
     template <typename F>
       requires concepts::ActionOn<F, T>
-    AccessGuard &&then(F f) && {
+    void execute(F f) && {
+      f(this->m_monitor_ref.m_shared_resource);
+    }
+
+    template <typename F>
+      requires concepts::ActionOn<F, T>
+    [[nodiscard]] AccessGuard &&then(F f) && {
       f(this->m_monitor_ref.m_shared_resource);
       return std::move(*this);
     }
 
     template <typename F>
       requires concepts::ReadOnlyActionOn<F, T>
-    AccessGuard &&then_check(F f) && {
+    void check(F f) && {
+      f(this->m_monitor_ref.m_shared_resource);
+    }
+
+    template <typename F>
+      requires concepts::ReadOnlyActionOn<F, T>
+    [[nodiscard]] AccessGuard &&then_check(F f) && {
       f(this->m_monitor_ref.m_shared_resource);
       return std::move(*this);
     }
