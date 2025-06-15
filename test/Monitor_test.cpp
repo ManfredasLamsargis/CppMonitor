@@ -68,6 +68,7 @@ TEST(SingleThreaded, AccessGuard_FunctionReturnTransfersOwnership) {
 
   // --- SETUP ---
   VecMonitor monitor{};
+  constexpr int expected_size{1};
   constexpr int expected_value{1};
   auto return_guard = [&] -> AccessGuard {
     return monitor.acquire().then(
@@ -79,6 +80,7 @@ TEST(SingleThreaded, AccessGuard_FunctionReturnTransfersOwnership) {
 
   // --- ASSERT ---
   EXPECT_TRUE(guard.owns_resource());
+  ASSERT_EQ(guard->size(), expected_size);
   EXPECT_EQ(guard->front(), expected_value);
 }
 
