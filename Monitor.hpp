@@ -19,7 +19,7 @@ concept ActionOn = requires(F f, T &t) {
 template <typename T>
 class Monitor {
  public:
-  class Window {
+  class AccessGuard {
    public:
     enum class NotifyPolicy { none, notify_one, notify_all };
 
@@ -29,22 +29,22 @@ class Monitor {
     NotifyPolicy m_notify_policy;
 
    public:
-    Window(Monitor &mon, NotifyPolicy notify_policy)
+    AccessGuard(Monitor &mon, NotifyPolicy notify_policy)
         : m_monitor_ref{mon},
           m_lock{mon.m_mutex},
           m_notify_policy{notify_policy} {}
 
-    Window(Monitor &mon, std::unique_lock<std::mutex> &&lock,
-           NotifyPolicy notify_policy)
+    AccessGuard(Monitor &mon, std::unique_lock<std::mutex> &&lock,
+                NotifyPolicy notify_policy)
         : m_monitor_ref{mon},
           m_lock{std::move(lock)},
           m_notify_policy{notify_policy} {}
 
-    Window(Window &&) noexcept = default;
-    Window &operator=(Window &&) noexcept = default;
+    AccessGuard(AccessGuard &&) noexcept = default;
+    AccessGuard &operator=(AccessGuard &&) noexcept = default;
 
-    Window(const Window &) = delete;
-    Window &operator=(const Window &) = delete;
+    AccessGuard(const AccessGuard &) = delete;
+    AccessGuard &operator=(const AccessGuard &) = delete;
 
     T *operator->() { return &m_monitor_ref.m_shared_resource; }
 
@@ -52,7 +52,7 @@ class Monitor {
 
     template <typename F>
       requires concepts::ActionOn<F, T>
-    Window &&then(F f) && {
+    AccessGuard &&then(F f) && {
       f(this->m_monitor_ref.m_shared_resource);
       return std::move(*this);
     }
@@ -63,7 +63,7 @@ class Monitor {
       f(this->m_monitor_ref.m_shared_resource);
     }
 
-    ~Window() {
+    ~AccessGuard() {
       if (!m_lock.owns_lock()) {
         return;
       }
@@ -85,15 +85,15 @@ class Monitor {
   T m_shared_resource;
   std::mutex m_mutex;
   std::condition_variable m_convar;
-  Window::NotifyPolicy m_def_notify_policy;
+  AccessGuard::NotifyPolicy m_def_notify_policy;
 
  public:
   template <typename... Args>
   explicit Monitor(Args &&...args)
       : m_shared_resource{std::forward<Args>(args)...},
-        m_def_notify_policy{Window::NotifyPolicy::notify_all} {}
+        m_def_notify_policy{AccessGuard::NotifyPolicy::notify_all} {}
 
-  explicit Monitor(Window::NotifyPolicy default_notify_policy)
+  explicit Monitor(AccessGuard::NotifyPolicy default_notify_policy)
       : m_shared_resource{}, m_def_notify_policy{default_notify_policy} {}
 
   Monitor(const Monitor &) = delete;
@@ -101,12 +101,12 @@ class Monitor {
   Monitor(Monitor &&) = delete;
   Monitor &operator=(Monitor &&) = delete;
 
-  Window operator->() { return Window{*this, m_def_notify_policy}; }
+  AccessGuard operator->() { return AccessGuard{*this, m_def_notify_policy}; }
 
-  Window lock() { return Window{*this, m_def_notify_policy}; }
+  AccessGuard lock() { return AccessGuard{*this, m_def_notify_policy}; }
 
-  Window lock(Window::NotifyPolicy notify_policy) {
-    return Window(*this, notify_policy);
+  AccessGuard lock(AccessGuard::NotifyPolicy notify_policy) {
+    return AccessGuard(*this, notify_policy);
   }
 
   T &get_thread_unsafe_access() { return m_shared_resource; }
@@ -114,22 +114,24 @@ class Monitor {
  private:
   template <typename Predicate>
     requires concepts::PredicateOver<Predicate, const T>
-  Window wait_handle(Predicate pred, Window::NotifyPolicy notify_policy) {
+  AccessGuard wait_handle(Predicate pred,
+                          AccessGuard::NotifyPolicy notify_policy) {
     std::unique_lock<std::mutex> lock{m_mutex};
     m_convar.wait(lock, [&pred, this] { return pred(m_shared_resource); });
-    return Window{*this, std::move(lock), notify_policy};
+    return AccessGuard{*this, std::move(lock), notify_policy};
   }
 
  public:
   template <typename Predicate>
     requires concepts::PredicateOver<Predicate, const T>
-  Window acquire_when(Predicate pred) {
+  AccessGuard acquire_when(Predicate pred) {
     return wait_handle(pred, m_def_notify_policy);
   }
 
   template <typename Predicate>
     requires concepts::PredicateOver<Predicate, const T>
-  Window acquire_when(Predicate pred, Window::NotifyPolicy notify_policy) {
+  AccessGuard acquire_when(Predicate pred,
+                           AccessGuard::NotifyPolicy notify_policy) {
     return wait_handle(pred, notify_policy);
   }
 };
