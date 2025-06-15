@@ -2,6 +2,9 @@
 
 #include <gtest/gtest.h>
 
+#include <future>
+#include <thread>
+
 using mem::Monitor;
 
 TEST(SingleThreaded, ResourceValueIsPersistent) {
@@ -75,4 +78,71 @@ TEST(Constructor, InitializesWithProvidedDefaultPolicy) {
   const Monitor<int> monitor{expected_policy};
 
   EXPECT_EQ(monitor.default_notify_policy(), expected_policy);
+}
+
+TEST(MultiThreaded, AcquireWhen_BlocksUntilNotified) {
+  using namespace std::chrono_literals;
+  using IntegerMonitor = Monitor<int>;
+  using NotifyPolicy = IntegerMonitor::AccessGuard::NotifyPolicy;
+
+  // --- SETUP ---
+  std::promise<bool> listener_completed_promise;
+  std::future<bool> listener_completed_future{
+      listener_completed_promise.get_future()};
+  IntegerMonitor monitor{NotifyPolicy::notify_one};
+
+  // -- ACTION --
+  const std::jthread listener{[&] {
+    monitor.acquire_when([](const int &value) { return value == 1; })
+        .then_check([](const int &value) { EXPECT_EQ(value, 1); })
+        .execute([&](int &) { listener_completed_promise.set_value(true); });
+  }};
+
+  std::this_thread::sleep_for(50ms);
+
+  monitor.lock().execute([](int &val) { val = 1; });
+
+  // -- ASSERT --
+  const std::future_status listener_future_status{
+      listener_completed_future.wait_for(1s)};
+
+  ASSERT_EQ(listener_future_status, std::future_status::ready)
+      << "Test timed out: reader thread did not complete. "
+      << "Likely reader thread was never notified by the writer thread.";
+
+  EXPECT_TRUE(listener_completed_future.get());
+}
+
+TEST(MultiThreaded, NotifyPolicyNone_DoesNotWakeWaitingThread) {
+  using namespace std::chrono_literals;
+  using IntegerMonitor = Monitor<int>;
+  using NotifyPolicy = IntegerMonitor::AccessGuard::NotifyPolicy;
+
+  // --- SETUP ---
+  std::promise<void> listener_woke_up_promise;
+  std::future<void> listener_woke_up_future{
+      listener_woke_up_promise.get_future()};
+
+  IntegerMonitor monitor{NotifyPolicy::none};
+
+  // --- ACTION ---
+  const std::jthread listener{[&] {
+    monitor.acquire_when([](const int &value) { return value == 1; })
+        .execute([&](auto &) { listener_woke_up_promise.set_value(); });
+  }};
+
+  std::this_thread::sleep_for(50ms);
+
+  monitor.lock().execute([](int &value) { value = 1; });
+
+  // --- ASSERT ---
+  const std::future_status listener_future_status{
+      listener_woke_up_future.wait_for(100ms)};
+
+  ASSERT_EQ(listener_future_status, std::future_status::timeout)
+      << "Listener thread woke up when should not have with "
+         "NotifyPolicy::none.";
+
+  // --- CLEANUP ---
+  monitor.lock(NotifyPolicy::notify_one).release();
 }
