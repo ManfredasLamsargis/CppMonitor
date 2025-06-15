@@ -137,9 +137,9 @@ class Monitor {
 
   AccessGuard operator->() { return AccessGuard{*this, m_def_notify_policy}; }
 
-  AccessGuard lock() { return AccessGuard{*this, m_def_notify_policy}; }
+  AccessGuard acquire() { return AccessGuard{*this, m_def_notify_policy}; }
 
-  AccessGuard lock(AccessGuard::NotifyPolicy notify_policy) {
+  AccessGuard acquire(AccessGuard::NotifyPolicy notify_policy) {
     return AccessGuard(*this, notify_policy);
   }
 

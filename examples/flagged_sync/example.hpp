@@ -31,16 +31,16 @@ inline void producer_task(const std::string &hash, const std::size_t ntimes) {
   utils::repeat(ntimes, [&ss, &hash] {
     ss << "{producer:" << hash << '}';
     utils::random_sleep(std::chrono::seconds(1));
-    mon_ptr->lock()->push_back(ss.str());
+    mon_ptr->acquire()->push_back(ss.str());
     ss.str(std::string{});
   });
   utils::println("pruducer {} exited", hash);
-  flg_ptr->lock()->producer_declare_exit();
+  flg_ptr->acquire()->producer_declare_exit();
 }
 
 inline void consumer_task(const std::string &hash) {
   auto can_consume_or_done = [](const std::vector<std::string> &vec) -> bool {
-    return !vec.empty() || flg_ptr->lock()->task_completed();
+    return !vec.empty() || flg_ptr->acquire()->task_completed();
   };
   while (true) {
     utils::random_sleep(std::chrono::seconds(2));
@@ -53,6 +53,6 @@ inline void consumer_task(const std::string &hash) {
     vec_window->pop_back();
   }
   utils::println("consumer {} exited", hash);
-  flg_ptr->lock()->consumer_declare_exit();
+  flg_ptr->acquire()->consumer_declare_exit();
 }
 }  // namespace ex
