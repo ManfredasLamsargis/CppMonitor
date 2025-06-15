@@ -59,7 +59,7 @@ class Monitor {
 
     template <typename F>
       requires concepts::ActionOn<F, T>
-    void finally(F f) && {
+    void before_release(F f) && {
       f(this->m_monitor_ref.m_shared_resource);
     }
 
@@ -123,13 +123,13 @@ class Monitor {
  public:
   template <typename Predicate>
     requires concepts::PredicateOver<Predicate, const T>
-  Window wait(Predicate pred) {
+  Window acquire_when(Predicate pred) {
     return wait_handle(pred, m_def_notify_policy);
   }
 
   template <typename Predicate>
     requires concepts::PredicateOver<Predicate, const T>
-  Window wait(Predicate pred, Window::NotifyPolicy notify_policy) {
+  Window acquire_when(Predicate pred, Window::NotifyPolicy notify_policy) {
     return wait_handle(pred, notify_policy);
   }
 };
