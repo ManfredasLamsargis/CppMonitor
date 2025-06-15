@@ -52,7 +52,14 @@ class Monitor {
     AccessGuard(const AccessGuard &) = delete;
     AccessGuard &operator=(const AccessGuard &) = delete;
 
+    T &operator*() { return m_monitor_ref.m_shared_resource; }
+    const T &operator*() const { return m_monitor_ref.m_shared_resource; }
+
     T *operator->() { return &m_monitor_ref.m_shared_resource; }
+    const T *operator->() const { return &m_monitor_ref.m_shared_resource; }
+
+    T &resource() { return m_monitor_ref.m_shared_resource; }
+    const T &resource() const { return m_monitor_ref.m_shared_resource; }
 
     bool owns_resource() const noexcept { return m_lock.owns_lock(); }
 
