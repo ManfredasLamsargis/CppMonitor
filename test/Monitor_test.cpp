@@ -68,13 +68,18 @@ TEST(SingleThreaded, AccessGuard_FunctionReturnTransfersOwnership) {
 
   // --- SETUP ---
   VecMonitor monitor{};
-  auto return_guard = [&] -> AccessGuard { return monitor.acquire(); };
+  constexpr int expected_value{1};
+  auto return_guard = [&] -> AccessGuard {
+    return monitor.acquire().then(
+        [&](std::vector<int> &vec) { vec.push_back(expected_value); });
+  };
 
   // --- ACTION ---
   AccessGuard guard{return_guard()};
 
   // --- ASSERT ---
   EXPECT_TRUE(guard.owns_resource());
+  EXPECT_EQ(guard->back(), expected_value);
 }
 
 TEST(Constructor, InitializesFromSingleValue) {
