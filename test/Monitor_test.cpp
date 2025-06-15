@@ -79,7 +79,7 @@ TEST(SingleThreaded, AccessGuard_FunctionReturnTransfersOwnership) {
 
   // --- ASSERT ---
   EXPECT_TRUE(guard.owns_resource());
-  EXPECT_EQ(guard->back(), expected_value);
+  EXPECT_EQ(guard->front(), expected_value);
 }
 
 TEST(Constructor, InitializesFromSingleValue) {
