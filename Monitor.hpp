@@ -95,7 +95,7 @@ class Monitor {
       f(this->m_monitor_ref.m_shared_resource);
     }
 
-    void unlock() && {}
+    void release() && {}
 
     ~AccessGuard() {
       if (!m_lock.owns_lock()) {
