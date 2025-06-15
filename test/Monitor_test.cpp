@@ -7,7 +7,7 @@
 
 using mem::Monitor;
 
-TEST(SingleThreaded, ResourceValueIsPersistent) {
+TEST(SingleThreaded, Resource_ValueIsPersistent) {
   constexpr int set_value{1};
   Monitor<int> monitor{};
 
@@ -44,6 +44,37 @@ TEST(SignleThreaded, ChainingMethods_MixedChainedModificationsAreSequential) {
       .before_release([](int &v) { v -= 10; });
 
   monitor.acquire().check([](const int &v) { EXPECT_EQ(v, 0); });
+}
+
+TEST(SingleThreaded, AccessGuard_MoveTransfersOwnership) {
+  using StringMonitor = Monitor<std::string>;
+  using AccessGuard = StringMonitor::AccessGuard;
+
+  // --- SETUP ---
+  StringMonitor monitor{"test"};
+
+  // --- ACTION ---
+  AccessGuard old_guard{monitor.acquire()};
+  AccessGuard new_guard{std::move(old_guard)};
+
+  // --- ASSERT ---
+  EXPECT_FALSE(old_guard.owns_resource());
+  EXPECT_TRUE(new_guard.owns_resource());
+}
+
+TEST(SingleThreaded, AccessGuard_FunctionReturnTransfersOwnership) {
+  using VecMonitor = Monitor<std::vector<int>>;
+  using AccessGuard = VecMonitor::AccessGuard;
+
+  // --- SETUP ---
+  VecMonitor monitor{};
+  auto return_guard = [&] -> AccessGuard { return monitor.acquire(); };
+
+  // --- ACTION ---
+  AccessGuard guard{return_guard()};
+
+  // --- ASSERT ---
+  EXPECT_TRUE(guard.owns_resource());
 }
 
 TEST(Constructor, InitializesFromSingleValue) {
