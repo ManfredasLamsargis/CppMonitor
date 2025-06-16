@@ -35,13 +35,13 @@ class Monitor {
     NotifyPolicy m_notify_policy;
 
    public:
-    AccessGuard(Monitor &mon, NotifyPolicy notify_policy)
+    explicit AccessGuard(Monitor &mon, NotifyPolicy notify_policy)
         : m_monitor_ref{mon},
           m_lock{mon.m_mutex},
           m_notify_policy{notify_policy} {}
 
-    AccessGuard(Monitor &mon, std::unique_lock<std::mutex> &&lock,
-                NotifyPolicy notify_policy)
+    explicit AccessGuard(Monitor &mon, std::unique_lock<std::mutex> &&lock,
+                         NotifyPolicy notify_policy)
         : m_monitor_ref{mon},
           m_lock{std::move(lock)},
           m_notify_policy{notify_policy} {}
