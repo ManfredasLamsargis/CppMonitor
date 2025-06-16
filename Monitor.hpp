@@ -145,9 +145,21 @@ class Monitor {
 
   AccessGuard operator->() { return AccessGuard{*this, m_def_notify_policy}; }
 
+  const AccessGuard operator->() const {
+    return AccessGuard{*this, m_def_notify_policy};
+  }
+
   AccessGuard acquire() { return AccessGuard{*this, m_def_notify_policy}; }
 
   AccessGuard acquire(AccessGuard::NotifyPolicy notify_policy) {
+    return AccessGuard(*this, notify_policy);
+  }
+
+  const AccessGuard peek() const {
+    return AccessGuard(*this, m_def_notify_policy);
+  }
+
+  const AccessGuard peek(const AccessGuard::NotifyPolicy notify_policy) const {
     return AccessGuard(*this, notify_policy);
   }
 
