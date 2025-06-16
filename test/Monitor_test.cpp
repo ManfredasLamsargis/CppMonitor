@@ -5,11 +5,9 @@
 #include <future>
 #include <thread>
 
-using mem::Monitor;
-
-TEST(SingleThreaded, Resource_ValueIsPersistent) {
+TEST(SingleThreadedMonitor, ResourceValueIsPersistent) {
   constexpr int set_value{1};
-  Monitor<int> monitor{};
+  mem::Monitor<int> monitor{};
 
   monitor.acquire().execute([&](int &value) { value = set_value; });
 
@@ -17,9 +15,9 @@ TEST(SingleThreaded, Resource_ValueIsPersistent) {
       [&](const int &value) { EXPECT_EQ(value, set_value); });
 }
 
-TEST(SingleThreaded, ChainingMethods_ThenModificationsAreSequential) {
+TEST(SingleThreadedMonitor, ChainingMethods_ThenModificationsAreSequential) {
   constexpr int expected{10};
-  Monitor<int> monitor{};
+  mem::Monitor<int> monitor{};
 
   monitor.acquire()
       .then([](int &v) { v = 8; })
@@ -31,8 +29,9 @@ TEST(SingleThreaded, ChainingMethods_ThenModificationsAreSequential) {
       [&](const int &actual) { EXPECT_EQ(actual, expected); });
 }
 
-TEST(SignleThreaded, ChainingMethods_MixedChainedModificationsAreSequential) {
-  Monitor<int> monitor{};
+TEST(SignleThreadedMonitor,
+     ChainingMethods_MixedChainedModificationsAreSequential) {
+  mem::Monitor<int> monitor{};
 
   monitor.acquire()
       .then_check([](const int &v) { EXPECT_EQ(v, 0); })
@@ -46,8 +45,8 @@ TEST(SignleThreaded, ChainingMethods_MixedChainedModificationsAreSequential) {
   monitor.acquire().check([](const int &v) { EXPECT_EQ(v, 0); });
 }
 
-TEST(SingleThreaded, AccessGuard_MoveTransfersOwnership) {
-  using StringMonitor = Monitor<std::string>;
+TEST(SingleThreadedMonitor, AccessGuard_MoveTransfersOwnership) {
+  using StringMonitor = mem::Monitor<std::string>;
   using AccessGuard = StringMonitor::AccessGuard;
 
   // --- SETUP ---
@@ -62,8 +61,8 @@ TEST(SingleThreaded, AccessGuard_MoveTransfersOwnership) {
   EXPECT_TRUE(new_guard.owns_resource());
 }
 
-TEST(SingleThreaded, AccessGuard_FunctionReturnTransfersOwnership) {
-  using VecMonitor = Monitor<std::vector<int>>;
+TEST(SingleThreadedMonitor, AccessGuard_FunctionReturnTransfersOwnership) {
+  using VecMonitor = mem::Monitor<std::vector<int>>;
   using AccessGuard = VecMonitor::AccessGuard;
 
   // --- SETUP ---
@@ -84,17 +83,18 @@ TEST(SingleThreaded, AccessGuard_FunctionReturnTransfersOwnership) {
   EXPECT_EQ(guard.resource().front(), expected_value);
 }
 
-TEST(Constructor, InitializesFromSingleValue) {
+TEST(SingleThreadedMonitor, Constructor_InitializesFromSingleValue) {
   constexpr std::string_view initial_value{"test"};
 
-  Monitor<std::string> monitor{initial_value};
+  mem::Monitor<std::string> monitor{initial_value};
 
   monitor.acquire().check(
       [&](const std::string &value) { EXPECT_EQ(value, initial_value); });
 }
 
-TEST(AccessGuard, OperatorBool_CorrectlyIndicatesOwnership) {
-  Monitor<bool> monitor{};
+TEST(SingleThreadedMonitor,
+     AccessGuard_BoolOperator_CorrectlyIndicatesOwnership) {
+  mem::Monitor<bool> monitor{};
   auto original_guard{monitor.acquire()};
 
   auto new_guard{std::move(original_guard)};
@@ -105,36 +105,59 @@ TEST(AccessGuard, OperatorBool_CorrectlyIndicatesOwnership) {
       << "The new guard should evaluate to true after a move";
 }
 
-TEST(Constructor, InitializesFromMultipleArgs) {
+TEST(SingleThreadedMonitor, ArrowOperator_GrantsAccessToResource) {
+  constexpr std::size_t size{1};
+  constexpr int value{1};
+  mem::Monitor<std::array<int, 1>> monitor{value};
+
+  ASSERT_EQ(monitor.acquire()->size(), size)
+      << "AccessGuard::operator-> should return pointer to resource.";
+  ASSERT_EQ(monitor->size(), size);
+  EXPECT_EQ(monitor->front(), value);
+}
+
+TEST(SingleThreadedMonitor,
+     AccessGuard_StarOperator_ReturnsReferenceOfSharedResource) {
+  constexpr int value{1};
+  mem::Monitor<int> monitor{value};
+
+  auto access_guard{monitor.acquire()};
+
+  EXPECT_EQ(*access_guard, value) << "AccessGuard::operator* should return "
+                                     "lvalue reference to a shared resource";
+}
+
+TEST(SingleThreadedMonitor, Constructor_InitializesFromMultipleArgs) {
   constexpr std::array<int, 3> expected_value{1, 2, 3};
 
-  Monitor<std::array<int, 3>> monitor{1, 2, 3};
+  mem::Monitor<std::array<int, 3>> monitor{1, 2, 3};
 
   monitor.acquire().check([&](const std::array<int, 3> &value) {
     EXPECT_EQ(value, expected_value);
   });
 }
 
-TEST(Constructor, InitializesWithDefaultNotifyPolicy) {
+TEST(SingleThreadedMonitor, Constructor_InitializesWithDefaultNotifyPolicy) {
   constexpr auto expected_policy{
-      Monitor<int>::AccessGuard::NotifyPolicy::notify_all};
+      mem::Monitor<int>::AccessGuard::NotifyPolicy::notify_all};
 
-  const Monitor<int> monitor{};
-
-  EXPECT_EQ(monitor.default_notify_policy(), expected_policy);
-}
-
-TEST(Constructor, InitializesWithProvidedDefaultPolicy) {
-  constexpr auto expected_policy{Monitor<int>::AccessGuard::NotifyPolicy::none};
-
-  const Monitor<int> monitor{expected_policy};
+  const mem::Monitor<int> monitor{};
 
   EXPECT_EQ(monitor.default_notify_policy(), expected_policy);
 }
 
-TEST(MultiThreaded, AcquireWhen_BlocksUntilNotified) {
+TEST(SingleThreadedMonitor, Constructor_InitializesWithProvidedDefaultPolicy) {
+  constexpr auto expected_policy{
+      mem::Monitor<int>::AccessGuard::NotifyPolicy::none};
+
+  const mem::Monitor<int> monitor{expected_policy};
+
+  EXPECT_EQ(monitor.default_notify_policy(), expected_policy);
+}
+
+TEST(MultiThreadedMonitor, AcquireWhen_BlocksUntilNotified) {
   using namespace std::chrono_literals;
-  using IntegerMonitor = Monitor<int>;
+  using IntegerMonitor = mem::Monitor<int>;
   using NotifyPolicy = IntegerMonitor::AccessGuard::NotifyPolicy;
 
   // --- SETUP ---
@@ -165,9 +188,9 @@ TEST(MultiThreaded, AcquireWhen_BlocksUntilNotified) {
   EXPECT_TRUE(listener_completed_future.get());
 }
 
-TEST(MultiThreaded, NotifyPolicyNone_DoesNotWakeWaitingThread) {
+TEST(MultiThreadedMonitor, NotifyPolicyNone_DoesNotWakeWaitingThread) {
   using namespace std::chrono_literals;
-  using IntegerMonitor = Monitor<int>;
+  using IntegerMonitor = mem::Monitor<int>;
   using NotifyPolicy = IntegerMonitor::AccessGuard::NotifyPolicy;
 
   // --- SETUP ---
