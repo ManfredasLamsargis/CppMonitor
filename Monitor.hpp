@@ -32,16 +32,16 @@ class Monitor {
    private:
     Monitor &m_monitor_ref;
     std::unique_lock<std::mutex> m_lock;
-    NotifyPolicy m_notify_policy;
+    const NotifyPolicy m_notify_policy;
 
    public:
-    explicit AccessGuard(Monitor &mon, NotifyPolicy notify_policy)
+    explicit AccessGuard(Monitor &mon, const NotifyPolicy notify_policy)
         : m_monitor_ref{mon},
           m_lock{mon.m_mutex},
           m_notify_policy{notify_policy} {}
 
     explicit AccessGuard(Monitor &mon, std::unique_lock<std::mutex> &&lock,
-                         NotifyPolicy notify_policy)
+                         const NotifyPolicy notify_policy)
         : m_monitor_ref{mon},
           m_lock{std::move(lock)},
           m_notify_policy{notify_policy} {}
@@ -83,7 +83,7 @@ class Monitor {
 
     template <typename F>
       requires concepts::ReadOnlyActionOn<F, T>
-    void check(F f) && {
+    void check(F f) const && {
       f(this->m_monitor_ref.m_shared_resource);
     }
 
@@ -103,7 +103,7 @@ class Monitor {
       f(this->m_monitor_ref.m_shared_resource);
     }
 
-    void release() && {}
+    void release() const && {}
 
     ~AccessGuard() {
       if (!m_lock.owns_lock()) {
@@ -135,7 +135,7 @@ class Monitor {
       : m_shared_resource{std::forward<Args>(args)...},
         m_def_notify_policy{AccessGuard::NotifyPolicy::notify_all} {}
 
-  explicit Monitor(AccessGuard::NotifyPolicy default_notify_policy)
+  explicit Monitor(const AccessGuard::NotifyPolicy default_notify_policy)
       : m_shared_resource{}, m_def_notify_policy{default_notify_policy} {}
 
   Monitor(const Monitor &) = delete;
@@ -151,7 +151,7 @@ class Monitor {
 
   AccessGuard acquire() { return AccessGuard{*this, m_def_notify_policy}; }
 
-  AccessGuard acquire(AccessGuard::NotifyPolicy notify_policy) {
+  AccessGuard acquire(const AccessGuard::NotifyPolicy notify_policy) {
     return AccessGuard(*this, notify_policy);
   }
 
@@ -167,6 +167,11 @@ class Monitor {
 
   AccessGuard::NotifyPolicy default_notify_policy() const {
     return m_def_notify_policy;
+  }
+
+  void change_default_notify_policy(
+      const AccessGuard::NotifyPolicy default_policy) {
+    m_def_notify_policy = default_policy;
   }
 
  private:
